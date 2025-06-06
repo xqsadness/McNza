@@ -29,7 +29,9 @@ struct McNzaApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainTabView()
+            RootView{
+                ContentView()
+            }
         }
         .modelContainer(sharedModelContainer)
     }

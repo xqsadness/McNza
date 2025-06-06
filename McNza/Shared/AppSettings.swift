@@ -10,8 +10,21 @@ import SwiftUI
 enum Tab: String, CaseIterable {
     case musicFeed = ""
     case discovery = "Discovery"
-    case livestream = "Livestream"
+    case playlist = "Playlist"
     case me = "Me"
+        
+    var iconName: String {
+        switch self {
+        case .musicFeed:
+            return "pause.circle.fill"
+        case .discovery:
+            return "globe"
+        case .playlist:
+            return "music.note.list"
+        case .me:
+            return "person.crop.circle"
+        }
+    }
 }
 
 class AppSettings: ObservableObject{

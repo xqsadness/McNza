@@ -8,14 +8,27 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    @Bindable private var coordinator = Coordinator.shared
+    @StateObject private var app = AppSettings.shared
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack(path: $coordinator.navigationPath) {
+            MainTabView()
+                .navigationDestination(for: UUID.self) { id in
+                    coordinator.viewForID(id)
+                }
+                .sheet(item: $coordinator.sheetID) { id in
+                    coordinator.viewForID(id)
+                }
+                .fullScreenCover(item: $coordinator.fullScreenCoverID) { id in
+                    coordinator.viewForID(id)
+                }
         }
-        .padding()
+        .blur(radius: app.isBlur ? 6.6: 0)
+        .opacity(app.isBlur ? 0.5 : 1)
+        .environment(coordinator)
+        .ignoresSafeArea(.keyboard)
     }
 }
 
