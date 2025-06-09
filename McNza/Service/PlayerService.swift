@@ -16,13 +16,13 @@ class PlayerService: NSObject {
     // MARK: - Private Properties
     private var player: AVPlayer?
     private var playerLayer: AVPlayerLayer?
-    private var currentIndex: Int = 0
     private var timeObserver: Any?
     private var sleepTimer: Timer?
     private var sleepStartTime: Date?
     private var sleepPausedTime: Date?
     
     // MARK: - Public Properties
+    var currentIndex: Int = 0
     var isLandscape: Bool = false
     var isPlaying: Bool = false
     var isRepeating: Bool = false

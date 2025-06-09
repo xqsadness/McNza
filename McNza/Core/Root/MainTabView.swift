@@ -1,10 +1,17 @@
 import SwiftUI
 import _SwiftData_SwiftUI
 
+enum FilterType: String, CaseIterable {
+    case all = "All"
+    case favorite = "Favourite"
+    case recent = "Recent"
+}
+
 struct MainTabView: View {
     
     @StateObject private var appSettings = AppSettings.shared
-    
+    @State var mainReelPlayerVm = MainReelPlayerViewModel()
+
     init(){
         UITabBar.appearance().isHidden = true
     }
@@ -12,6 +19,7 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $appSettings.selectedTab) {
             MainReelPlayerView()
+                .environment(mainReelPlayerVm)
                 .tag(Tab.musicFeed)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.black)
@@ -36,15 +44,16 @@ struct MainTabView: View {
             alignment: .bottom
         )
         .overlay(alignment: .topTrailing){
-            HStack{
-                Text("For you")
-                    .font(.system(size: 20)).bold()
-                    .foregroundStyle(.gray)
-                    .padding(.trailing, 10)
-                
-                Text("Local")
-                    .font(.system(size: 20)).bold()
-                    .foregroundStyle(.primary)
+            HStack(spacing: 15) {
+                ForEach(FilterType.allCases, id: \.self) { filter in
+                    Text(filter.rawValue)
+                        .font(.system(size: 20)).bold()
+                        .foregroundStyle(mainReelPlayerVm.selectedFilter == filter ? .primary : Color.gray)
+                        .contentShape(.rect)
+                        .onTapGesture {
+                            mainReelPlayerVm.selectedFilter = filter
+                        }
+                }
                 
                 Image(systemName: "magnifyingglass")
                     .imageScale(.large)
@@ -63,7 +72,7 @@ struct BottomTabBarView: View {
     @StateObject private var appSettings = AppSettings.shared
     @State var player = PlayerService.shared
     @Query(sort: \Song.dateAdd, order: .reverse) var songs: [Song]
-
+    
     var body: some View {
         HStack {
             ForEach(Tab.allCases, id: \.self) { tab in
@@ -74,11 +83,15 @@ struct BottomTabBarView: View {
                         .frame(maxWidth: .infinity)
                         .contentShape(.rect)
                         .onTapGesture {
-                            if appSettings.selectedTab != .musicFeed{
+                            if appSettings.selectedTab != .musicFeed {
                                 appSettings.selectedTab = .musicFeed
-                            }else{
-                                if let f = songs.first{
-                                    player.play(song: f, in: songs)
+                            } else {
+                                let index = player.currentIndex
+                                if index >= 0 && index < songs.count {
+                                    player.play(song: songs[index], in: songs)
+                                } else if let firstSong = songs.first {
+                                    player.play(song: firstSong, in: songs)
+                                    
                                 }
                             }
                         }

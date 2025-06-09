@@ -72,3 +72,7 @@ class Song {
         self.copyrights = copyrights
     }
 }
+
+extension Song {
+    typealias SongID = PersistentIdentifier
+}

@@ -93,3 +93,15 @@ extension URL {
         }
     }
 }
+
+extension Double {
+    func formattedTime() -> String {
+        guard !self.isNaN, !self.isInfinite else {
+            return "--:--"
+        }
+        
+        let minutes = Int(self) / 60
+        let seconds = Int(self) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
