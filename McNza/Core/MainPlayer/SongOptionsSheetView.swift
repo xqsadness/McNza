@@ -37,10 +37,10 @@ fileprivate struct SheetActionItem: View {
 struct SongOptionsSheetView: View {
     
     @Environment(MainReelPlayerViewModel.self) var vm
-    @Query(sort: \Song.dateAdd, order: .reverse) var songs: [Song]
     //Params
     let song: Song
-    
+    let songs: [Song]
+
     var body: some View {
         // Sheet content
         VStack(spacing: 0) {

@@ -21,7 +21,7 @@ struct MainReelPlayerView: View {
         switch vm.selectedFilter {
         case .all:
             return songs
-        case .favorite:
+        case .liked:
             return favSongs
         case .recent:
             return songs
@@ -67,6 +67,7 @@ struct SongItemView: View {
     @Binding var currentIndex: Int
     
     //View props
+    @Query(sort: \Song.dateAdd, order: .reverse) var songs: [Song]
     @State var player = PlayerService.shared
     //Computed property
     private var isCurrentSong: Bool {
@@ -193,7 +194,7 @@ struct SongItemView: View {
                         .contentShape(.rect)
                         .onTapGesture {
                             Coordinator.shared.presentSheet(
-                                SongOptionsSheetView(song: song)
+                                SongOptionsSheetView(song: song, songs: songs)
                                     .environment(vm)
                             )
                         }

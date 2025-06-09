@@ -3,7 +3,7 @@ import _SwiftData_SwiftUI
 
 enum FilterType: String, CaseIterable {
     case all = "All"
-    case favorite = "Favourite"
+    case liked = "Liked"
     case recent = "Recent"
 }
 
