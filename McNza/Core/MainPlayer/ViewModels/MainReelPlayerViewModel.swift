@@ -12,7 +12,7 @@ import SwiftData
 class MainReelPlayerViewModel{
     
     let player = PlayerService.shared
-    var scrollPosition: Song.SongID?
     var selectedFilter: FilterType = .all
-   
+    var currentIndex: Int = 0
+    
 }

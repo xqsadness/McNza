@@ -163,14 +163,15 @@ struct SmartArtworkView: View {
     let song: Song
     let size: CGSize
     let cornerRadius: CGFloat = 5
-
+    var maximumSize: CGSize = CGSize(width: 300, height: 300)
+    
     var body: some View {
         Group {
             if let artwork = song.artwork {
                 Image(uiImage: UIImage.fromData(artwork))
                     .resizable()
             } else if song.isVideo {
-                ThumbnailView(fileURL: song.fileURL, frameSize: size)
+                ThumbnailView(fileURL: song.fileURL, frameSize: size, maximumSize: maximumSize)
             } else {
                 Image(.defaultM)
                     .resizable()

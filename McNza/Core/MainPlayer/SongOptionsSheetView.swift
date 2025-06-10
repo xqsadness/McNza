@@ -40,6 +40,7 @@ struct SongOptionsSheetView: View {
     //Params
     let song: Song
     let songs: [Song]
+    let scrollReader: ScrollViewProxy
 
     var body: some View {
         // Sheet content
@@ -51,16 +52,22 @@ struct SongOptionsSheetView: View {
             
             ScrollView(.horizontal){
                 HStack(spacing: 20) {
-                    SheetActionItem(icon: "repeat", label: "Play Once"){
-                        
+                   SheetActionItem(
+                        icon: vm.player.isRepeating ? "repeat.1" : "repeat",
+                        label: vm.player.isRepeating ? "Repeat One" : "Play Once"
+                    ) {
+                        vm.player.toggleRepeat()
                     }
-                    
                     SheetActionItem(icon: "\(song.isFavorite ? "heart.slash" : "heart")", label: "\(song.isFavorite ? "Dislike" : "Like")"){
                         song.isFavorite.toggle()
                     }
-                    SheetActionItem(icon: "circle", label: "Audio quality", action: {})
+                    SheetActionItem(icon: "text.line.first.and.arrowtriangle.forward", label: "Add to queue") {
+                        vm.player.addToQueue(song: song)
+                    }
                     SheetActionItem(icon: "plus", label: "Add to playlist", action: {})
                     SheetActionItem(icon: "clock", label: "Sleep", action: {})
+                    SheetActionItem(icon: "info.circle", label: "Information", action: {})
+                    SheetActionItem(icon: "square.and.arrow.up", label: "Share", action: {})
                 }
                 .padding(.horizontal)
                 .padding(.top, 12)
@@ -72,7 +79,7 @@ struct SongOptionsSheetView: View {
                 .padding(.vertical, 8)
             
             VStack(alignment: .leading, spacing: 0) {
-                Text("Your Songs (\(songs.count)")
+                Text("Your Songs (\(songs.count))")
                     .font(.headline)
                     .foregroundColor(.white)
                     .padding(.horizontal)
@@ -83,7 +90,7 @@ struct SongOptionsSheetView: View {
                         ForEach(songs) { item in
                             HStack {
                                 // Artwork
-                                SmartArtworkView(song: item, size: CGSize(width: 48, height: 48))
+                                SmartArtworkView(song: item, size: CGSize(width: 48, height: 48), maximumSize: CGSize(width: 99, height: 99))
                                     .cornerRadius(8)
                                 
                                 VStack(alignment: .leading, spacing: 6.5) {
@@ -114,7 +121,7 @@ struct SongOptionsSheetView: View {
                             .onTapGesture{
                                 withAnimation(.spring) {
                                     vm.selectedFilter = .all
-                                    vm.scrollPosition = item.id
+                                    scrollReader.scrollTo(item.id, anchor: .center)
                                     vm.player.play(song: item, in: songs)
                                 }
                             }

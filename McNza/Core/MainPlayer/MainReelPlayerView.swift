@@ -10,12 +10,11 @@ import SwiftData
 
 struct MainReelPlayerView: View {
     
-    //Vm
+    //VM
     @Environment(MainReelPlayerViewModel.self) var vm
     //View props
     @Query(sort: \Song.dateAdd, order: .reverse) var songs: [Song]
     @Query(filter: #Predicate { $0.isFavorite == true }, sort: \Song.dateModified, order: .reverse) var favSongs: [Song]
-    @State private var currentIndex: Int = 0
     
     var displayedSongs: [Song] {
         switch vm.selectedFilter {
@@ -30,27 +29,25 @@ struct MainReelPlayerView: View {
     
     var body: some View {
         @Bindable var vmBinding = vm
+        
         GeometryReader { proxy in
-            let screenHeight = proxy.size.height
-            ScrollView(.vertical) {
-                LazyVStack(spacing: 0) {
-                    ForEach(displayedSongs, id: \.id) { song in
-                        let index = displayedSongs.firstIndex(where: { $0.id == song.id }) ?? 0
-                        SongItemView(
-                            song: song,
-                            screenHeight: screenHeight,
-                            screenWidth: proxy.size.width,
-                            index: index,
-                            currentIndex: $currentIndex
-                        )
+            ScrollViewReader { scrollReader in
+                ScrollView(.vertical) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(displayedSongs.enumerated()), id: \.element.id) { index, song in
+                            SongItemView(
+                                song: song,
+                                index: index,
+                                scrollReader: scrollReader
+                            )
+                            .id(song.id)
+                        }
                     }
+                    .scrollTargetLayout()
                 }
-                .scrollTargetLayout()
+                .scrollTargetBehavior(.paging)
+                .scrollIndicators(.hidden)
             }
-            .scrollTargetBehavior(.paging)
-            .scrollIndicators(.hidden)
-            .coordinateSpace(name: "scroll")
-            .scrollPosition(id: $vmBinding.scrollPosition)
         }
         .ignoresSafeArea()
     }
@@ -61,17 +58,22 @@ struct SongItemView: View {
     @Environment(MainReelPlayerViewModel.self) var vm
     //Params
     let song: Song
-    let screenHeight: CGFloat
-    let screenWidth: CGFloat
     let index: Int
-    @Binding var currentIndex: Int
-    
+    let scrollReader: ScrollViewProxy
     //View props
     @Query(sort: \Song.dateAdd, order: .reverse) var songs: [Song]
     @State var player = PlayerService.shared
     //Computed property
     private var isCurrentSong: Bool {
         player.currentTrack?.id == song.id
+    }
+    
+    var screenWidth: CGFloat {
+        UIScreen.main.bounds.width
+    }
+    
+    var screenHeight: CGFloat {
+        UIScreen.main.bounds.height
     }
     
     var body: some View {
@@ -194,7 +196,7 @@ struct SongItemView: View {
                         .contentShape(.rect)
                         .onTapGesture {
                             Coordinator.shared.presentSheet(
-                                SongOptionsSheetView(song: song, songs: songs)
+                                SongOptionsSheetView(song: song, songs: songs, scrollReader: scrollReader)
                                     .environment(vm)
                             )
                         }
@@ -266,7 +268,7 @@ struct SongItemView: View {
                 .onTapGesture {
                     withAnimation(.spring) {
                         vm.selectedFilter = .all
-                        vm.scrollPosition = player.currentTrack?.id
+                        scrollReader.scrollTo(player.currentTrack?.id, anchor: .center)
                     }
                 }
             }
@@ -279,9 +281,9 @@ struct SongItemView: View {
             GeometryReader { geo in
                 Color.clear
                     .onChange(of: geo.frame(in: .named("scroll")).minY) { _, newValue in
-                        if abs(newValue) < screenHeight/2 && currentIndex != index {
+                        if abs(newValue) < screenHeight/2 && vm.currentIndex != index {
                             print("Current song: \(song.fileNameWithoutExtension) at index: \(index)")
-                            currentIndex = index
+                            vm.currentIndex = index
                             player.currentIndex = index
                         }
                     }
