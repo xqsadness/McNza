@@ -88,7 +88,7 @@ struct SongItemView: View {
             // Content
             VStack(alignment: .leading, spacing: 0) {
                 Spacer()
-                Text(song.fileNameWithoutExtension)
+                Text(song.title)
                     .hSpacing(.leading)
                     .multilineTextAlignment(.leading)
                     .font(.system(size: 23))
@@ -150,7 +150,7 @@ struct SongItemView: View {
                 
                 // Song Info
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(song.fileNameWithoutExtension)
+                    Text(song.title)
                         .font(.system(size: 23))
                         .hSpacing(.leading)
                         .frame(maxHeight: 70)

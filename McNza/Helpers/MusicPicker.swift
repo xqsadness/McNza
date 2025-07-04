@@ -129,9 +129,8 @@ struct MusicPicker: View {
                         onExport: { assetInput in
                             let uuid = UUID().uuidString
                             let toDIR = FileManager.getDocumentsDirectory().appendingPathComponent("\(uuid).m4a", conformingTo: .fileURL)
-                            guard let title = assetInput.title else { return false }
                             let onErr = {
-                                print("Error, Can't import \(title)")
+                                print("Error, Can't import media")
                             }
                             guard let url = assetInput.assetURL else { onErr(); return false }
                             let assetURL = AVURLAsset(url: url)
@@ -142,11 +141,12 @@ struct MusicPicker: View {
                             exporter.outputFileType = .m4a
                             exporter.exportAsynchronously {
                                 if exporter.status == .completed {
-                                    print("[\(#fileID)] line: \(#line), URI(\(exporter.status) && \(title)")
+                                    print("[\(#fileID)] line: \(#line), URI(\(exporter.status) && \(assetInput.title ?? "Unknown Song")")
                                     DispatchQueue.main.async {
+                                        let songTitle = assetInput.title ?? uuid
                                         let song = Song(
                                             videoID: uuid,
-                                            title: title,
+                                            title: songTitle,
                                             length: 0,
                                             owner: "Apple Music",
                                             dateAdd: Date(),

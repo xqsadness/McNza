@@ -12,20 +12,28 @@ fileprivate struct SheetActionItem: View {
     let icon: String
     let label: String
     let action: () -> Void
+    let isDestructive: Bool
+    
+    init(icon: String, label: String, isDestructive: Bool = false, action: @escaping () -> Void) {
+        self.icon = icon
+        self.label = label
+        self.action = action
+        self.isDestructive = isDestructive
+    }
     
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(isDestructive ? .red : .white)
                     .contentTransition(.symbolEffect(.replace))
                     .frame(width: 46, height: 46)
                     .background(Color.white.opacity(0.1))
                     .clipShape(Circle())
                 Text(label)
                     .font(.caption)
-                    .foregroundColor(.white)
+                    .foregroundColor(isDestructive ? .red : .white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
@@ -37,11 +45,13 @@ fileprivate struct SheetActionItem: View {
 struct SongOptionsSheetView: View {
     
     @Environment(MainReelPlayerViewModel.self) var vm
+    @Environment(\.modelContext) private var modelContext
     //Params
     let song: Song
     let songs: [Song]
     let scrollReader: ScrollViewProxy
-
+    @State private var showDeleteAlert = false
+    
     var body: some View {
         // Sheet content
         VStack(spacing: 0) {
@@ -52,7 +62,7 @@ struct SongOptionsSheetView: View {
             
             ScrollView(.horizontal){
                 HStack(spacing: 20) {
-                   SheetActionItem(
+                    SheetActionItem(
                         icon: vm.player.isRepeating ? "repeat.1" : "repeat",
                         label: vm.player.isRepeating ? "Repeat One" : "Play Once"
                     ) {
@@ -68,6 +78,13 @@ struct SongOptionsSheetView: View {
                     SheetActionItem(icon: "clock", label: "Sleep", action: {})
                     SheetActionItem(icon: "info.circle", label: "Information", action: {})
                     SheetActionItem(icon: "square.and.arrow.up", label: "Share", action: {})
+                    SheetActionItem(
+                        icon: "trash.fill",
+                        label: "Delete",
+                        isDestructive: true
+                    ) {
+                        showDeleteAlert = true
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.top, 12)
@@ -148,5 +165,29 @@ struct SongOptionsSheetView: View {
         .presentationBackground(.ultraThinMaterial)
         .presentationCornerRadius(17)
         .ignoresSafeArea(edges: .bottom)
+        .alert("Delete Song", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                deleteSong()
+            }
+        } message: {
+            Text("Are you sure you want to delete this song? This action cannot be undone.")
+        }
+    }
+    
+    private func deleteSong() {
+        // Delete file from documents
+        if let fileURL = song.fileURL{
+            if FileManagerService.shared.deleteFile(at: fileURL) {
+                // If file deletion successful, delete from SwiftData
+                modelContext.delete(song)
+                // Close the sheet
+                Coordinator.shared.dismissSheet()
+                // Show success message
+                Toast.shared.present(title: "Song deleted successfully")
+            } else {
+                Toast.shared.present(title: "Error deleting song file")
+            }
+        }
     }
 }
