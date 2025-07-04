@@ -10,26 +10,41 @@ import AVFoundation
 
 class ImageCache {
     static let shared = ImageCache()
-    private var cache: [URL: UIImage] = [:]
+    private var cache: [String: UIImage] = [:]
+    private let maxCacheSize = 100 // Maximum number of cached images
     
     private init() {}
     
-    func getImage(for url: URL) -> UIImage? {
-        return cache[url]
+    func getImage(for key: String) -> UIImage? {
+        return cache[key]
     }
     
-    func setImage(_ image: UIImage, for url: URL) {
-        cache[url] = image
+    func setImage(_ image: UIImage, for key: String) {
+        // If cache is full, remove oldest entry
+        if cache.count >= maxCacheSize {
+            if let firstKey = cache.keys.first {
+                cache.removeValue(forKey: firstKey)
+            }
+        }
+        cache[key] = image
     }
 }
 
 class ThumbnailViewModel: ObservableObject {
     @Published var thumbnail: UIImage? = nil
+    private let id: String
+    
+    init(id: String = UUID().uuidString) {
+        self.id = id
+    }
     
     func loadThumbnail(for url: URL?, maximumSize: CGSize) {
         guard let url = url else { return }
         
-        if let cachedImage = ImageCache.shared.getImage(for: url) {
+        // Create a unique cache key combining URL and size
+        let cacheKey = "\(url.absoluteString)_\(maximumSize.width)_\(maximumSize.height)"
+        
+        if let cachedImage = ImageCache.shared.getImage(for: cacheKey) {
             self.thumbnail = cachedImage
             return
         }
@@ -39,7 +54,7 @@ class ThumbnailViewModel: ObservableObject {
         if ["mp4", "mov", "m4v"].contains(fileExtension) {
             if let generatedThumbnail = generateThumbnail(from: url, at: 1, maximumSize: maximumSize) {
                 self.thumbnail = generatedThumbnail
-                ImageCache.shared.setImage(generatedThumbnail, for: url)
+                ImageCache.shared.setImage(generatedThumbnail, for: cacheKey)
             }
         } else if ["mp3", "wav", "aac"].contains(fileExtension) {
             self.thumbnail = nil
@@ -84,12 +99,21 @@ class ThumbnailViewModel: ObservableObject {
 }
 
 struct ThumbnailView: View {
-    @StateObject private var viewModel = ThumbnailViewModel()
+    @StateObject private var viewModel: ThumbnailViewModel
     
     var fileURL: URL?
     var placeholder: String = "defaultM"
     var frameSize: CGSize = CGSize(width: 145, height: 145)
     var maximumSize: CGSize = CGSize(width: 300, height: 300)
+    
+    init(fileURL: URL?, placeholder: String = "defaultM", frameSize: CGSize = CGSize(width: 145, height: 145), maximumSize: CGSize = CGSize(width: 300, height: 300)) {
+        self.fileURL = fileURL
+        self.placeholder = placeholder
+        self.frameSize = frameSize
+        self.maximumSize = maximumSize
+        // Create unique ID for each instance
+        _viewModel = StateObject(wrappedValue: ThumbnailViewModel(id: "\(fileURL?.absoluteString ?? "")_\(maximumSize.width)_\(maximumSize.height)"))
+    }
     
     var body: some View {
         ZStack {
@@ -115,11 +139,19 @@ struct ThumbnailView: View {
 }
 
 struct ThumbnailNoWidthView: View {
-    @StateObject private var viewModel = ThumbnailViewModel()
+    @StateObject private var viewModel: ThumbnailViewModel
     
     var fileURL: URL?
     var placeholder: String = "defaultM"
     var maximumSize: CGSize = CGSize(width: 300, height: 300)
+    
+    init(fileURL: URL?, placeholder: String = "defaultM", maximumSize: CGSize = CGSize(width: 300, height: 300)) {
+        self.fileURL = fileURL
+        self.placeholder = placeholder
+        self.maximumSize = maximumSize
+        // Create unique ID for each instance
+        _viewModel = StateObject(wrappedValue: ThumbnailViewModel(id: "\(fileURL?.absoluteString ?? "")_\(maximumSize.width)_\(maximumSize.height)"))
+    }
     
     var body: some View {
         ZStack {

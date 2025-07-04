@@ -2,7 +2,7 @@
 //  MainReelPlayerViewModel.swift
 //  McNza
 //
-//  Created by darktech4 on 9/6/25.
+//  Created by xqsadness on 9/6/25.
 //
 
 import SwiftUI

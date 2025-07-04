@@ -51,7 +51,9 @@ struct MainTabView: View {
                         .foregroundStyle(mainReelPlayerVm.selectedFilter == filter ? .primary : Color.gray)
                         .contentShape(.rect)
                         .onTapGesture {
-                            mainReelPlayerVm.selectedFilter = filter
+                            withAnimation(.spring) {
+                                mainReelPlayerVm.selectedFilter = filter
+                            }
                         }
                 }
                 

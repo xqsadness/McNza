@@ -41,12 +41,9 @@ struct SheetImport: View {
                     vm.isPickerPresented.toggle()
                 }
                 
-                //                customButton("icAppleMusic", "Import From Apple Music", "Import songs from your Apple Music library"){
-                //                    Coordinator.shared.dismissSheet()
-                //                    Coordinator.shared.navigateTo(
-                //                        AppleMusic()
-                //                    )
-                //                }
+                customButton("icAppleMusic", "Import From Apple Music", "Import songs from your Apple Music library"){
+                    vm.isAppleMusicPresented = true
+                }
             }
             .vSpacing(.top)
             .padding(15)
@@ -69,6 +66,9 @@ struct SheetImport: View {
                     }
                 }
             }
+            .sheet(isPresented: $vm.isAppleMusicPresented){
+                MusicPicker(isPresent: $vm.isAppleMusicPresented, modelContext: modelContext)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .frame(height: 270)
@@ -88,16 +88,19 @@ struct SheetImport: View {
         HStack(spacing: 13){
             Image(img)
                 .resizable()
-                .frame(width: 35, height: 35)
-                .clipShape(.circle)
+                .frame(width: 30, height: 30)
             
             VStack(spacing: 6){
                 Text(title)
+                    .font(.system(size: 16))
+                    .foregroundStyle(.primary).bold()
                     .hSpacing(.leading)
                     .lineLimit(1)
                 
                 if !subTitle.isEmpty{
                     Text(subTitle)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
                         .hSpacing(.leading)
                         .lineLimit(1)
                 }
@@ -109,6 +112,7 @@ struct SheetImport: View {
         .background{
             RoundedRectangle(cornerRadius: 16)
                 .stroke(lineWidth: 1)
+                .foregroundStyle(.gray)
         }
         .contentShape(.rect)
         .onTapGesture {
@@ -124,7 +128,7 @@ class SheetImportViewModel {
     //view props
     var isImporterPresented = false
     var isPickerPresented = false
-    var isOptionViewPresented = false
+    var isAppleMusicPresented  = false
     var selectedMV: Song = .init()
     
     //MARK: Func handler

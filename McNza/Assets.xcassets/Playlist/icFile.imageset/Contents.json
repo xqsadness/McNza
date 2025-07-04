@@ -1,0 +1,21 @@
+{
+  "images" : [
+    {
+      "filename" : "documentation_folder_document_management_files_file_project_icon_142253.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
